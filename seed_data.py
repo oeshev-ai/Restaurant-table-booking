@@ -1,4 +1,4 @@
-"""Заполнение БД тестовыми данными: 5 пользователей, 5 столов, 5 бронирований."""
+"""Заполнение БД тестовыми данными: сотрудники, гости, столы, бронирования."""
 
 from __future__ import annotations
 
@@ -6,7 +6,8 @@ from datetime import datetime, timedelta, timezone
 
 from Models.booking import Booking
 from Models.tables import Table
-from Models.user import User
+from Models.user import ROLE_ADMIN, ROLE_CUSTOMER, ROLE_STAFF, User
+from auth import hash_password
 from backend import Backend
 
 
@@ -27,38 +28,59 @@ def seed(*, reset: bool = True) -> None:
 
     users = [
         User(
+            email="admin@example.com",
+            password_hash=hash_password("admin123"),
+            full_name="Администратор",
+            phone="+79000000001",
+            role=ROLE_ADMIN,
+            is_active=True,
+        ),
+        User(
+            email="staff@example.com",
+            password_hash=hash_password("staff123"),
+            full_name="Сотрудник Смены",
+            phone="+79000000002",
+            role=ROLE_STAFF,
+            is_active=True,
+        ),
+        User(
             email="ivanov@example.com",
-            password_hash="hash_ivanov",
+            password_hash=hash_password("guest123"),
             full_name="Иванов Иван",
             phone="+79001112233",
+            role=ROLE_CUSTOMER,
             is_active=True,
         ),
         User(
             email="petrova@example.com",
-            password_hash="hash_petrova",
+            password_hash=hash_password("guest123"),
             full_name="Петрова Анна",
             phone="+79002223344",
+            role=ROLE_CUSTOMER,
             is_active=True,
         ),
         User(
             email="sidorov@example.com",
-            password_hash="hash_sidorov",
+            password_hash=hash_password("guest123"),
             full_name="Сидоров Пётр",
             phone="+79003334455",
+            role=ROLE_CUSTOMER,
             is_active=True,
         ),
         User(
             email="smirnova@example.com",
-            password_hash="hash_smirnova",
+            password_hash=hash_password("guest123"),
             full_name="Смирнова Ольга",
             phone="+79004445566",
+            role=ROLE_CUSTOMER,
             is_active=True,
         ),
         User(
             email="kuznetsov@example.com",
-            password_hash="hash_kuznetsov",
+            password_hash=hash_password("guest123"),
             full_name="Кузнецов Алексей",
             phone="+79005556677",
+            role=ROLE_CUSTOMER,
             is_active=False,
         ),
     ]
@@ -79,10 +101,12 @@ def seed(*, reset: bool = True) -> None:
         created_users = [api.create_user(user) for user in users]
         created_tables = [api.create_table(table) for table in tables]
 
-        # Брони только на активные столы; интервалы не пересекаются.
+        # Гости для броней: индексы 2..5 (после admin/staff).
+        guests = created_users[2:]
+
         bookings = [
             Booking(
-                user_id=created_users[0].id,
+                user_id=guests[0].id,
                 table_id=created_tables[0].id,
                 starts_at=now + timedelta(days=1, hours=18),
                 ends_at=now + timedelta(days=1, hours=20),
@@ -91,7 +115,7 @@ def seed(*, reset: bool = True) -> None:
                 comment="У окна",
             ),
             Booking(
-                user_id=created_users[1].id,
+                user_id=guests[1].id,
                 table_id=created_tables[1].id,
                 starts_at=now + timedelta(days=1, hours=19),
                 ends_at=now + timedelta(days=1, hours=21),
@@ -100,7 +124,7 @@ def seed(*, reset: bool = True) -> None:
                 comment=None,
             ),
             Booking(
-                user_id=created_users[2].id,
+                user_id=guests[2].id,
                 table_id=created_tables[2].id,
                 starts_at=now + timedelta(days=2, hours=13),
                 ends_at=now + timedelta(days=2, hours=15),
@@ -109,7 +133,7 @@ def seed(*, reset: bool = True) -> None:
                 comment="День рождения",
             ),
             Booking(
-                user_id=created_users[3].id,
+                user_id=guests[3].id,
                 table_id=created_tables[3].id,
                 starts_at=now + timedelta(days=2, hours=18),
                 ends_at=now + timedelta(days=2, hours=21),
@@ -118,7 +142,7 @@ def seed(*, reset: bool = True) -> None:
                 comment="VIP ужин",
             ),
             Booking(
-                user_id=created_users[0].id,
+                user_id=guests[0].id,
                 table_id=created_tables[1].id,
                 starts_at=now + timedelta(days=3, hours=12),
                 ends_at=now + timedelta(days=3, hours=14),
@@ -133,6 +157,8 @@ def seed(*, reset: bool = True) -> None:
         print(f"Пользователи: {len(created_users)}")
         print(f"Столы: {len(created_tables)}")
         print(f"Бронирования: {len(created_bookings)}")
+        print("Вход: admin@example.com / admin123")
+        print("Вход: staff@example.com / staff123")
 
 
 if __name__ == "__main__":

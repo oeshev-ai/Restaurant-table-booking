@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{% if user_id %}Изменить пользователя{% else %}Новый пользователь{% endif %}{% endblock %}
+{% block content %}
+<section class="panel form-panel">
+  <h2>{% if user_id %}Изменить пользователя{% else %}Новый пользователь{% endif %}</h2>
+  {% if error %}<p class="message error">{{ error }}</p>{% endif %}
+  <form method="post" id="user-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if user_id %}
+    <label>ID<input value="{{ user_id }}" readonly></label>
+    {% endif %}
+    <label>Email<input name="email" type="email" value="{{ form.email }}" required autocomplete="username"></label>
+    <label>ФИО<input name="full_name" value="{{ form.full_name }}" required></label>
+    <label>Телефон<input name="phone" value="{{ form.phone }}"></label>
+    <label>Роль
+      <select name="role" id="role-select" required {% if user_id and current_user and user_id == current_user.id %}disabled{% endif %}>
+        {% for code, label in ROLE_LABELS.items() %}
+        <option value="{{ code }}" {% if form.role == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% if user_id and current_user and user_id == current_user.id %}
+    <input type="hidden" name="role" value="{{ ROLE_ADMIN }}">
+    {% endif %}
+    <label id="password-field" class="password-field">Пароль{% if user_id %}<span class="hint"> (оставьте пустым, чтобы не менять)</span>{% endif %}
+      <input name="password" id="password-input" type="password" value="" autocomplete="new-password">
+    </label>
+    <p id="guest-hint" class="login-hint">Гостю пароль не нужен — вход в систему для этой роли недоступен.</p>
+    <label class="check"><input type="checkbox" name="is_active" {% if form.is_active %}checked{% endif %} {% if user_id and current_user and user_id == current_user.id %}disabled{% endif %}> Активен</label>
+    {% if user_id and current_user and user_id == current_user.id %}
+    <input type="hidden" name="is_active" value="on">
+    {% endif %}
+    <div class="actions">
+      <button type="submit">Сохранить</button>
+      <a class="button" href="{{ url_for('users', id=user_id) if user_id else url_for('users') }}">Отмена</a>
+    </div>
+  </form>
+</section>
+<script>
+(function () {
+  var loginRoles = { admin: true, staff: true };
+  var roleSelect = document.getElementById("role-select");
+  var passwordField = document.getElementById("password-field");
+  var passwordInput = document.getElementById("password-input");
+  var guestHint = document.getElementById("guest-hint");
+  var isEdit = {{ "true" if user_id else "false" }};
+
+  function syncPassword() {
+    var role = roleSelect ? roleSelect.value : "{{ form.role }}";
+    var needsPassword = !!loginRoles[role];
+    passwordField.hidden = !needsPassword;
+    guestHint.hidden = needsPassword;
+    passwordInput.required = needsPassword && !isEdit;
+    if (!needsPassword) {
+      passwordInput.value = "";
+    }
+  }
+
+  if (roleSelect) {
+    roleSelect.addEventListener("change", syncPassword);
+  }
+  syncPassword();
+})();
+</script>
+{% endblock %}

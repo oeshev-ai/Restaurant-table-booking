@@ -38,10 +38,20 @@ class Backend:
         self.close()
 
     def init_schema(self) -> None:
-        """Создать таблицы users → tables → bookings, если их ещё нет."""
-        self.db.execute(User.CREATE_TABLE_SQL)
-        self.db.execute(Table.CREATE_TABLE_SQL)
-        self.db.execute(Booking.CREATE_TABLE_SQL)
+        """Создать таблицы users → tables → bookings, если их ещё нет.
+
+        Берёт session-level advisory lock, чтобы несколько воркеров
+        Gunicorn не гонялись за созданием SERIAL-последовательностей.
+        """
+        lock_key = 0x5650633037  # VPc07
+        self.db.execute("SELECT pg_advisory_lock(%s)", (lock_key,))
+        try:
+            self.db.execute(User.CREATE_TABLE_SQL)
+            self.db.execute(User.MIGRATE_SQL)
+            self.db.execute(Table.CREATE_TABLE_SQL)
+            self.db.execute(Booking.CREATE_TABLE_SQL)
+        finally:
+            self.db.execute("SELECT pg_advisory_unlock(%s)", (lock_key,))
 
     # --- Users ---
 
@@ -52,6 +62,10 @@ class Backend:
 
     def get_user(self, user_id: int) -> User | None:
         row = self.db.read_one(User.TABLE, where={"id": user_id})
+        return User.from_row(row) if row else None
+
+    def get_user_by_email(self, email: str) -> User | None:
+        row = self.db.read_one(User.TABLE, where={"email": email})
         return User.from_row(row) if row else None
 
     def get_users(

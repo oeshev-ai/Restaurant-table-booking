@@ -1,0 +1,235 @@
+:root {
+  --bg: #ececec;
+  --panel: #f7f7f7;
+  --line: #c8c8c8;
+  --text: #222;
+  --accent: #2f5d8c;
+  --selected: #d6e6f5;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 14px/1.4 "Segoe UI", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 16px 0;
+  flex-wrap: wrap;
+}
+
+.user-bar {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  font-size: 13px;
+}
+
+.user-bar form { margin: 0; }
+
+.user-bar button {
+  padding: 4px 10px;
+  font: inherit;
+  border: 1px solid #b5b5b5;
+  background: #f3f3f3;
+  cursor: pointer;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 20% 20%, #d9e6f2 0, transparent 40%),
+    radial-gradient(circle at 80% 0%, #e8e8e8 0, transparent 35%),
+    var(--bg);
+}
+
+.login-wrap { width: 100%; padding: 16px; }
+
+.login-panel {
+  margin: 0 auto;
+  max-width: 420px;
+}
+
+.login-panel h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.login-hint {
+  margin: 14px 0 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.hint { color: #666; font-weight: normal; }
+
+header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+nav {
+  display: flex;
+  gap: 4px;
+}
+
+nav a {
+  padding: 8px 14px;
+  color: var(--text);
+  text-decoration: none;
+  background: #ddd;
+  border: 1px solid var(--line);
+  border-bottom: none;
+}
+
+nav a.active {
+  background: #fff;
+}
+
+main { padding: 0 16px 16px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 12px;
+  align-items: start;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 12px;
+}
+
+.panel h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  text-align: center;
+}
+
+aside .panel + .panel { margin-top: 12px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th, td {
+  border-bottom: 1px solid #e4e4e4;
+  padding: 6px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+tbody tr { cursor: pointer; }
+tbody tr.selected { background: var(--selected); }
+tbody tr:hover { background: #f3f7fb; }
+td.empty { text-align: center; color: #777; cursor: default; }
+
+aside .button,
+aside button,
+.actions .button,
+.actions button {
+  display: block;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  background: #f3f3f3;
+  border: 1px solid #b5b5b5;
+  cursor: pointer;
+  font: inherit;
+}
+
+.button.disabled {
+  color: #888;
+  cursor: default;
+}
+
+form label,
+.form-panel label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+input, select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px 8px;
+  font: inherit;
+  border: 1px solid #b5b5b5;
+}
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+label.check input {
+  width: auto;
+  margin: 0;
+}
+
+.when {
+  display: grid;
+  grid-template-columns: 70px 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.when span { padding-bottom: 8px; }
+
+.form-panel { max-width: 640px; }
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.actions .button,
+.actions button { width: auto; margin: 0; }
+
+.message {
+  padding: 8px 10px;
+  border: 1px solid;
+}
+
+.message.error {
+  background: #fdecec;
+  border-color: #e3b4b4;
+}
+
+.message.ok {
+  background: #eef8ee;
+  border-color: #b7d7b7;
+}
+
+.details-title {
+  margin: 0 0 8px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+
+dl { margin: 0; }
+dt { color: #555; }
+dd { margin: 0 0 8px; }

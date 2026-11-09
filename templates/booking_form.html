@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{% if booking_id %}Изменить бронирование{% else %}Новое бронирование{% endif %}{% endblock %}
+{% block content %}
+<section class="panel form-panel">
+  <h2>{% if booking_id %}Изменить бронирование{% else %}Новое бронирование{% endif %}</h2>
+  {% if error %}<p class="message error">{{ error }}</p>{% endif %}
+  {% if notice %}<p class="message ok">{{ notice }}</p>{% endif %}
+  <form method="post" id="booking-form"
+        action="{{ url_for('booking_edit', booking_id=booking_id) if booking_id else url_for('booking_new') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if booking_id %}
+    <label>ID<input value="{{ booking_id }}" readonly></label>
+    {% endif %}
+    <label>Пользователь
+      <select name="user_id" required>
+        <option value="">Выберите</option>
+        {% for user in users %}
+        <option value="{{ user.id }}" {% if form.user_id|string == user.id|string %}selected{% endif %}>
+          #{{ user.id }} — {{ user.full_name }} ({{ user.email }}){% if not user.is_active %} [неактивен]{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Стол
+      <select name="table_id" required>
+        <option value="">Выберите</option>
+        {% for table in tables %}
+        <option value="{{ table.id }}" {% if form.table_id|string == table.id|string %}selected{% endif %}>
+          #{{ table.id }} — стол {{ table.number }} ({{ table.seats }} мест{% if table.zone %}, {{ table.zone }}{% endif %}){% if not table.is_active %} [неактивен]{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="when">
+      <span>Начало</span>
+      <label>дата<input type="date" name="starts_date" value="{{ form.starts_date }}" required></label>
+      <label>время<input type="time" name="starts_time" value="{{ form.starts_time }}" required></label>
+    </div>
+    <div class="when">
+      <span>Конец</span>
+      <label>дата<input type="date" name="ends_date" value="{{ form.ends_date }}" required></label>
+      <label>время<input type="time" name="ends_time" value="{{ form.ends_time }}" required></label>
+    </div>
+    <label>Гостей<input name="guests_count" type="number" min="1" value="{{ form.guests_count }}" required></label>
+    <label>Статус
+      <select name="status">
+        {% for code, label in status_labels.items() %}
+        <option value="{{ code }}" {% if form.status == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Комментарий<input name="comment" value="{{ form.comment }}"></label>
+    <div class="actions">
+      <button type="submit">Сохранить</button>
+      <button type="submit" formaction="{{ url_for('booking_check_edit', booking_id=booking_id) if booking_id else url_for('booking_check_new') }}">Проверить доступность</button>
+      <a class="button" href="{{ url_for('bookings', id=booking_id) if booking_id else url_for('bookings') }}">Отмена</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

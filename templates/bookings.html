@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Бронирования{% endblock %}
+{% block content %}
+<div class="layout">
+  <section class="panel">
+    <h2>Список бронирований</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Пользователь</th>
+          <th>Стол</th>
+          <th>Начало</th>
+          <th>Конец</th>
+          <th>Гостей</th>
+          <th>Статус</th>
+          <th>Комментарий</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for booking in items %}
+        {% set user = users.get(booking.user_id) %}
+        {% set table = tables.get(booking.table_id) %}
+        <tr class="{% if selected and selected.id == booking.id %}selected{% endif %}"
+            onclick="location.href='{{ url_for('bookings', status=status, id=booking.id) }}'">
+          <td>{{ booking.id }}</td>
+          <td>{% if user %}{{ user.full_name }}{% else %}#{{ booking.user_id }}{% endif %}</td>
+          <td>{% if table %}№{{ table.number }}{% else %}#{{ booking.table_id }}{% endif %}</td>
+          <td>{{ fmt_dt(booking.starts_at) }}</td>
+          <td>{{ fmt_dt(booking.ends_at) }}</td>
+          <td>{{ booking.guests_count }}</td>
+          <td>{{ status_labels.get(booking.status, booking.status) }}</td>
+          <td>{{ booking.comment or "" }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty">Нет записей</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <aside>
+    <section class="panel">
+      <h2>Управление бронированиями</h2>
+      <a class="button" href="{{ url_for('booking_new') }}">Добавить бронирование</a>
+      {% if selected %}
+      <a class="button" href="{{ url_for('booking_edit', booking_id=selected.id) }}">Редактировать</a>
+      <form method="post" action="{{ url_for('booking_delete', booking_id=selected.id) }}" onsubmit="return confirm('Удалить бронирование #{{ selected.id }}?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Удалить</button>
+      </form>
+      {% else %}
+      <span class="button disabled">Редактировать</span>
+      <span class="button disabled">Удалить</span>
+      {% endif %}
+      <a class="button" href="{{ url_for('bookings', status=status) }}">Обновить список</a>
+    </section>
+    <section class="panel">
+      <form method="get" action="{{ url_for('bookings') }}">
+        <label for="status">Фильтр по статусу</label>
+        <select id="status" name="status" onchange="this.form.submit()">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>Все</option>
+          {% for code, label in status_labels.items() %}
+          <option value="{{ code }}" {% if status == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Информация о бронировании</h2>
+      <p class="details-title">Детали</p>
+      {% if selected %}
+      {% set user = users.get(selected.user_id) %}
+      {% set table = tables.get(selected.table_id) %}
+      {% endif %}
+      <dl>
+        <dt>ID</dt><dd>{{ selected.id if selected else "—" }}</dd>
+        <dt>Пользователь</dt><dd>{% if selected %}{% if user %}{{ user.full_name }}{% else %}#{{ selected.user_id }}{% endif %}{% else %}—{% endif %}</dd>
+        <dt>Стол</dt><dd>{% if selected %}{% if table %}№{{ table.number }}{% else %}#{{ selected.table_id }}{% endif %}{% else %}—{% endif %}</dd>
+        <dt>Начало</dt><dd>{{ fmt_dt(selected.starts_at) if selected else "—" }}</dd>
+        <dt>Конец</dt><dd>{{ fmt_dt(selected.ends_at) if selected else "—" }}</dd>
+        <dt>Гостей</dt><dd>{{ selected.guests_count if selected else "—" }}</dd>
+        <dt>Статус</dt><dd>{% if selected %}{{ status_labels.get(selected.status, selected.status) }}{% else %}—{% endif %}</dd>
+        <dt>Комментарий</dt><dd>{{ selected.comment if selected and selected.comment else "—" }}</dd>
+      </dl>
+    </section>
+  </aside>
+</div>
+{% endblock %}

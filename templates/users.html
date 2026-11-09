@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Пользователи{% endblock %}
+{% block content %}
+<div class="layout">
+  <section class="panel">
+    <h2>Список пользователей</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>ФИО</th>
+          <th>Роль</th>
+          <th>Телефон</th>
+          <th>Статус</th>
+          <th>Создан</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in items %}
+        <tr class="{% if selected and selected.id == user.id %}selected{% endif %}"
+            onclick="location.href='{{ url_for('users', status=status, role=role, id=user.id) }}'">
+          <td>{{ user.id }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.full_name }}</td>
+          <td>{{ ROLE_LABELS.get(user.role, user.role) }}</td>
+          <td>{{ user.phone or "" }}</td>
+          <td>{{ "Активен" if user.is_active else "Неактивен" }}</td>
+          <td>{{ fmt_dt(user.created_at) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty">Нет записей</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <aside>
+    <section class="panel">
+      <h2>Управление пользователями</h2>
+      <a class="button" href="{{ url_for('user_new') }}">Добавить пользователя</a>
+      {% if selected %}
+      <a class="button" href="{{ url_for('user_edit', user_id=selected.id) }}">Редактировать</a>
+      <form method="post" action="{{ url_for('user_delete', user_id=selected.id) }}" onsubmit="return confirm('Удалить пользователя #{{ selected.id }}?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" {% if current_user and selected.id == current_user.id %}disabled{% endif %}>Удалить</button>
+      </form>
+      {% else %}
+      <span class="button disabled">Редактировать</span>
+      <span class="button disabled">Удалить</span>
+      {% endif %}
+      <a class="button" href="{{ url_for('users', status=status, role=role) }}">Обновить список</a>
+    </section>
+    <section class="panel">
+      <form method="get" action="{{ url_for('users') }}">
+        <label for="status">Фильтр по статусу</label>
+        <select id="status" name="status" onchange="this.form.submit()">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>Все</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>Активные</option>
+          <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Неактивные</option>
+        </select>
+        <label for="role">Фильтр по роли</label>
+        <select id="role" name="role" onchange="this.form.submit()">
+          <option value="all" {% if role == 'all' %}selected{% endif %}>Все роли</option>
+          {% for code, label in ROLE_LABELS.items() %}
+          <option value="{{ code }}" {% if role == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Информация о пользователе</h2>
+      <p class="details-title">Детали</p>
+      <dl>
+        <dt>ID</dt><dd>{{ selected.id if selected else "—" }}</dd>
+        <dt>Email</dt><dd>{{ selected.email if selected else "—" }}</dd>
+        <dt>ФИО</dt><dd>{{ selected.full_name if selected else "—" }}</dd>
+        <dt>Роль</dt><dd>{% if selected %}{{ ROLE_LABELS.get(selected.role, selected.role) }}{% else %}—{% endif %}</dd>
+        <dt>Телефон</dt><dd>{{ selected.phone if selected and selected.phone else "—" }}</dd>
+        <dt>Статус</dt><dd>{% if selected %}{{ "Активен" if selected.is_active else "Неактивен" }}{% else %}—{% endif %}</dd>
+        <dt>Создан</dt><dd>{{ fmt_dt(selected.created_at) if selected else "—" }}</dd>
+      </dl>
+    </section>
+  </aside>
+</div>
+{% endblock %}

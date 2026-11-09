@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Столы{% endblock %}
+{% block content %}
+<div class="layout">
+  <section class="panel">
+    <h2>Список столов</h2>
+    {% if error %}<p class="message error">{{ error }}</p>{% endif %}
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Номер</th>
+          <th>Вместимость</th>
+          <th>Расположение</th>
+          <th>Статус</th>
+          <th>Создан</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for table in items %}
+        <tr class="{% if selected and selected.id == table.id %}selected{% endif %}"
+            onclick="location.href='{{ url_for('tables', status=status, id=table.id) }}'">
+          <td>{{ table.id }}</td>
+          <td>{{ table.number }}</td>
+          <td>{{ table.seats }}</td>
+          <td>{{ table.zone or "" }}</td>
+          <td>{{ "Активен" if table.is_active else "Неактивен" }}</td>
+          <td>{{ fmt_dt(table.created_at) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty">Нет записей</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <aside>
+    <section class="panel">
+      <h2>Управление столами</h2>
+      <a class="button" href="{{ url_for('table_new') }}">Добавить стол</a>
+      {% if selected %}
+      <a class="button" href="{{ url_for('table_edit', table_id=selected.id) }}">Редактировать</a>
+      <form method="post" action="{{ url_for('table_delete', table_id=selected.id) }}" onsubmit="return confirm('Удалить стол #{{ selected.id }}?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Удалить</button>
+      </form>
+      {% else %}
+      <span class="button disabled">Редактировать</span>
+      <span class="button disabled">Удалить</span>
+      {% endif %}
+      <a class="button" href="{{ url_for('tables', status=status) }}">Обновить список</a>
+    </section>
+    <section class="panel">
+      <form method="get" action="{{ url_for('tables') }}">
+        <label for="status">Фильтр по статусу</label>
+        <select id="status" name="status" onchange="this.form.submit()">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>Все</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>Активные</option>
+          <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Неактивные</option>
+        </select>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Информация о столе</h2>
+      <p class="details-title">Детали</p>
+      <dl>
+        <dt>ID</dt><dd>{{ selected.id if selected else "—" }}</dd>
+        <dt>Номер</dt><dd>{{ selected.number if selected else "—" }}</dd>
+        <dt>Вместимость</dt><dd>{{ selected.seats if selected else "—" }}</dd>
+        <dt>Расположение</dt><dd>{{ selected.zone if selected and selected.zone else "—" }}</dd>
+        <dt>Статус</dt><dd>{% if selected %}{{ "Активен" if selected.is_active else "Неактивен" }}{% else %}—{% endif %}</dd>
+        <dt>Создан</dt><dd>{{ fmt_dt(selected.created_at) if selected else "—" }}</dd>
+      </dl>
+    </section>
+  </aside>
+</div>
+{% endblock %}
