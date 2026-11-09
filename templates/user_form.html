@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{% if user_id %}Изменить пользователя{% else %}Новый пользователь{% endif %}{% endblock %}
 {% block content %}
+{% set needs_password = form.role in (ROLE_ADMIN, ROLE_STAFF) %}
 <section class="panel form-panel">
   <h2>{% if user_id %}Изменить пользователя{% else %}Новый пользователь{% endif %}</h2>
   {% if error %}<p class="message error">{{ error }}</p>{% endif %}
@@ -22,10 +23,12 @@
     {% if user_id and current_user and user_id == current_user.id %}
     <input type="hidden" name="role" value="{{ ROLE_ADMIN }}">
     {% endif %}
-    <label id="password-field" class="password-field">Пароль{% if user_id %}<span class="hint"> (оставьте пустым, чтобы не менять)</span>{% endif %}
-      <input name="password" id="password-input" type="password" value="" autocomplete="new-password">
+    <label id="password-field" class="password-field{% if not needs_password %} is-hidden{% endif %}">
+      Пароль{% if user_id %}<span class="hint"> (оставьте пустым, чтобы не менять)</span>{% endif %}
+      <input name="password" id="password-input" type="password" value="" autocomplete="new-password"
+             {% if needs_password and not user_id %}required{% endif %}
+             {% if not needs_password %}disabled{% endif %}>
     </label>
-    <p id="guest-hint" class="login-hint">Гостю пароль не нужен — вход в систему для этой роли недоступен.</p>
     <label class="check"><input type="checkbox" name="is_active" {% if form.is_active %}checked{% endif %} {% if user_id and current_user and user_id == current_user.id %}disabled{% endif %}> Активен</label>
     {% if user_id and current_user and user_id == current_user.id %}
     <input type="hidden" name="is_active" value="on">
@@ -42,17 +45,17 @@
   var roleSelect = document.getElementById("role-select");
   var passwordField = document.getElementById("password-field");
   var passwordInput = document.getElementById("password-input");
-  var guestHint = document.getElementById("guest-hint");
   var isEdit = {{ "true" if user_id else "false" }};
 
   function syncPassword() {
     var role = roleSelect ? roleSelect.value : "{{ form.role }}";
     var needsPassword = !!loginRoles[role];
-    passwordField.hidden = !needsPassword;
-    guestHint.hidden = needsPassword;
+    passwordField.classList.toggle("is-hidden", !needsPassword);
+    passwordInput.disabled = !needsPassword;
     passwordInput.required = needsPassword && !isEdit;
     if (!needsPassword) {
       passwordInput.value = "";
+      passwordInput.removeAttribute("required");
     }
   }
 

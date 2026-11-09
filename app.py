@@ -320,6 +320,12 @@ def create_app() -> Flask:
             raise ValueError("Укажите начало и конец бронирования")
         if booking.ends_at <= booking.starts_at:
             raise ValueError("Время окончания должно быть позже времени начала")
+        # Те же правила, что и при сохранении: активный стол + вместимость.
+        api._ensure_table_bookable(
+            booking.table_id,
+            booking.guests_count,
+            booking_status=booking.status,
+        )
         conflicts = api.find_conflicting_bookings(
             booking.table_id,
             booking.starts_at,

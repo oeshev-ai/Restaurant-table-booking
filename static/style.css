@@ -74,6 +74,8 @@ header {
 
 .hint { color: #666; font-weight: normal; }
 
+.is-hidden { display: none !important; }
+
 header h1 {
   margin: 0;
   font-size: 18px;
